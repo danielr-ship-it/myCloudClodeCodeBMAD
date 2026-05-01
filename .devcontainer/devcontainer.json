@@ -1,0 +1,24 @@
+{
+  "name": "Claude Code + BMad Workspace",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:22",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "onCreateCommand": "bash /workspaces/.devcontainer/setup.sh",
+  "postStartCommand": "echo '✅ Claude Code + BMad bereit. Starte mit: claude'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropics.claude-code"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "forwardPorts": [3000, 8080],
+  "remoteEnv": {
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
+  }
+}
