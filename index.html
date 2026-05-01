@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code + BMad Launcher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;800&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent1: #7c6af7;
+    --accent2: #3ecfcf;
+    --accent3: #f7c26a;
+    --text: #e2e2f0;
+    --muted: #6b6b8a;
+    --success: #4ade80;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,106,247,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,106,247,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob1 { width: 600px; height: 600px; background: var(--accent1); top: -200px; right: -100px; animation: float 8s ease-in-out infinite; }
+  .blob2 { width: 400px; height: 400px; background: var(--accent2); bottom: -100px; left: -100px; animation: float 10s ease-in-out infinite reverse; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-30px); }
+  }
+
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 24px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--accent2);
+    color: var(--accent2);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .hero {
+    position: relative;
+    z-index: 10;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 100px 48px 60px;
+    text-align: center;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent3);
+    margin-bottom: 32px;
+    padding: 6px 16px;
+    background: rgba(247,194,106,0.08);
+    border: 1px solid rgba(247,194,106,0.2);
+    border-radius: 20px;
+  }
+  .tag::before { content: '⚡'; }
+
+  h1 {
+    font-size: clamp(42px, 7vw, 80px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent1) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto 48px;
+    font-weight: 400;
+  }
+
+  /* Main launch card */
+  .launch-card {
+    position: relative;
+    z-index: 10;
+    max-width: 700px;
+    margin: 0 auto 80px;
+    padding: 0 48px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(124,106,247,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .repo-input-group {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--accent1); }
+  input::placeholder { color: var(--muted); }
+
+  .btn-primary {
+    padding: 14px 28px;
+    background: linear-gradient(135deg, var(--accent1), #5b4fd4);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 30px rgba(124,106,247,0.4);
+  }
+
+  .option-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .option-btn {
+    padding: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .option-btn.active, .option-btn:hover {
+    border-color: var(--accent1);
+    color: var(--text);
+    background: rgba(124,106,247,0.08);
+  }
+  .option-btn .icon { font-size: 18px; }
+
+  .launch-btn-full {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--accent2), #2ab0b0);
+    border: none;
+    border-radius: 12px;
+    color: #0a0a0f;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    letter-spacing: -0.3px;
+  }
+  .launch-btn-full:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(62,207,207,0.3);
+  }
+
+  /* Feature grid */
+  .features {
+    position: relative;
+    z-index: 10;
+    max-width: 900px;
+    margin: 0 auto 80px;
+    padding: 0 48px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: border-color 0.2s;
+  }
+  .feature-card:hover { border-color: rgba(124,106,247,0.4); }
+
+  .feature-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  .feature-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .feature-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 300;
+  }
+
+  /* Terminal preview */
+  .terminal {
+    position: relative;
+    z-index: 10;
+    max-width: 700px;
+    margin: 0 auto 80px;
+    padding: 0 48px;
+  }
+
+  .terminal-window {
+    background: #050508;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .terminal-bar {
+    background: #111118;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .terminal-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .terminal-body {
+    padding: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .t-comment { color: var(--muted); }
+  .t-cmd { color: var(--accent2); }
+  .t-out { color: var(--success); }
+  .t-dim { color: #3a3a5a; }
+  .t-accent { color: var(--accent3); }
+
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: var(--accent2);
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  footer {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 40px;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 768px) {
+    header { padding: 16px 20px; }
+    .hero { padding: 60px 20px 40px; }
+    .launch-card, .terminal, .features { padding: 0 20px; }
+    .features { grid-template-columns: 1fr; }
+    .option-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="glow-blob blob1"></div>
+<div class="glow-blob blob2"></div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    ClaudeLaunch
+  </div>
+  <div class="badge">Variante A · Codespaces</div>
+</header>
+
+<div class="hero">
+  <div class="tag">Kein Setup · Kein Install · Sofort loslegen</div>
+  <h1>Claude Code<br>+ BMad. Fertig.</h1>
+  <p class="subtitle">
+    Klick auf Launch — und du hast eine vollständige Entwicklungsumgebung im Browser.
+    Claude Code und BMad sind bereits installiert und konfiguriert.
+  </p>
+</div>
+
+<div class="launch-card">
+  <div class="card">
+    <div class="card-label">// Schritt 1 — GitHub Repo wählen oder eingeben</div>
+    <div class="repo-input-group">
+      <input type="text" id="repoInput" placeholder="github.com/dein-name/dein-repo" />
+      <button class="btn-primary" onclick="setRepo()">→</button>
+    </div>
+
+    <div class="card-label">// Schritt 2 — Umgebung wählen</div>
+    <div class="option-row">
+      <button class="option-btn active" id="opt-codespaces" onclick="selectEnv('codespaces')">
+        <span class="icon">🐙</span> GitHub Codespaces
+      </button>
+      <button class="option-btn" id="opt-gitpod" onclick="selectEnv('gitpod')">
+        <span class="icon">🟠</span> Gitpod
+      </button>
+    </div>
+
+    <button class="launch-btn-full" onclick="launch()">
+      ⚡ Jetzt starten — im Browser
+    </button>
+  </div>
+</div>
+
+<div class="features">
+  <div class="feature-card">
+    <div class="feature-icon">🔧</div>
+    <div class="feature-title">Auto-Setup</div>
+    <div class="feature-desc">devcontainer.json installiert Claude Code + BMad automatisch beim ersten Start.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🔑</div>
+    <div class="feature-title">API Key via Secret</div>
+    <div class="feature-desc">ANTHROPIC_API_KEY sicher als Codespace Secret hinterlegen — nie im Code.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">📁</div>
+    <div class="feature-title">GitHub Fileshare</div>
+    <div class="feature-desc">Projekte direkt im Repo — Versionierung, Branching, Pull Requests inklusive.</div>
+  </div>
+</div>
+
+<div class="terminal">
+  <div class="terminal-window">
+    <div class="terminal-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <span class="terminal-title">bash — Codespace</span>
+    </div>
+    <div class="terminal-body">
+      <div class="t-comment"># Automatisch nach Containerstart:</div>
+      <div class="t-out">✅ Claude Code installiert → v1.x</div>
+      <div class="t-out">✅ BMad installiert → latest</div>
+      <div class="t-out">✅ ANTHROPIC_API_KEY geladen</div>
+      <br>
+      <div><span class="t-dim">$</span> <span class="t-cmd">bmad init</span></div>
+      <div class="t-accent">? Projektname: <span class="t-cmd">mein-projekt</span></div>
+      <div class="t-out">✓ BMad-Struktur erstellt</div>
+      <br>
+      <div><span class="t-dim">$</span> <span class="t-cmd">claude</span></div>
+      <div class="t-out">Claude Code v1.x bereit.</div>
+      <div><span class="t-dim">></span> <span class="cursor"></span></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  ClaudeLaunch · Variante A · GitHub Codespaces / Gitpod
+</footer>
+
+<script>
+  let selectedEnv = 'codespaces';
+  let repoUrl = '';
+
+  function selectEnv(env) {
+    selectedEnv = env;
+    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('opt-' + env).classList.add('active');
+  }
+
+  function setRepo() {
+    const val = document.getElementById('repoInput').value.trim();
+    if (val) repoUrl = val.replace(/^https?:\/\/github\.com\//, '');
+  }
+
+  function launch() {
+    setRepo();
+    const repo = repoUrl || 'your-org/claude-bmad-starter';
+    const ghRepo = repo.startsWith('github.com/') ? repo.replace('github.com/', '') : repo;
+
+    if (selectedEnv === 'codespaces') {
+      window.open(`https://github.com/codespaces/new?repo=${encodeURIComponent(ghRepo)}&devcontainer_path=.devcontainer%2Fdevcontainer.json`, '_blank');
+    } else {
+      window.open(`https://gitpod.io/#https://github.com/${ghRepo}`, '_blank');
+    }
+  }
+</script>
+</body>
+</html>
